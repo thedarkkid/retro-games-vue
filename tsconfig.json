@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es6",
     "module": "esnext",
     "strict": true,
     "jsx": "preserve",
+    "noImplicitAny": true,
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
@@ -20,6 +21,7 @@
       "webpack-env",
       "jest",
       "vuetify"
+
     ],
     "paths": {
       "@/*": [
@@ -27,6 +29,7 @@
       ]
     },
     "lib": [
+      "es2017",
       "esnext",
       "dom",
       "dom.iterable",
