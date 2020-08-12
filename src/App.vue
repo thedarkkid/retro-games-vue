@@ -1,14 +1,14 @@
-<template>
-  <v-app>
-      <v-app-bar app class="d-block mb-5" color="primary" dark>
+<template >
+  <v-app id="home">
+      <v-app-bar app class="d-block" color="primary" dark>
           <div class="d-flex align-center">
               <h1>Retro Games</h1>
           </div>
           <v-spacer></v-spacer>
       </v-app-bar>
-      <v-main>
-          <v-container fluid>
-              <v-row no-gutters justify="left">
+      <v-main id="main">
+          <v-container fluid class="games">
+              <v-row no-gutters>
                   <v-col cols="2">
                       <Sidebar />
                   </v-col>
@@ -34,5 +34,15 @@ export default class App extends Vue{
 </script>
 
 <style lang="scss">
-
+#home{
+    margin: 0;
+    padding: 0;
+    #main{
+        max-height: 100vh !important;
+        overflow: hidden;
+        .games{
+            max-height: inherit !important;
+        }
+    }
+}
 </style>
