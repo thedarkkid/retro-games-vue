@@ -12,6 +12,7 @@
 
                             </div>
                         </div>
+                        <div ref="obstacle" v-if="obstacle_.visible" class="obstacle"></div>
                         <div class="ground" ref="ground">
                         </div>
                     </div>
@@ -26,29 +27,33 @@
 <script lang="ts">
 import {Component, Vue, Watch} from "vue-property-decorator";
 import ILooseObject from "@/interfaces/ILooseObject";
+import IBox from "@/interfaces/IBox";
 
 @Component
 export default class FlappyBird extends Vue{
     timerId = 0;
 
     $refs!: {
-        bird: HTMLElement;
-        gameDisplay: HTMLDivElement;
-        ground: HTMLDivElement;
+        [key: string]: HTMLDivElement;
     };
 
     gameDisplay_: ILooseObject = {};
+    ground_: ILooseObject = {};
 
     bird_: ILooseObject = {
+        visible: true,
         left: 220,
         bottom: 100,
         gravity: 2
     };
 
-    ground_: ILooseObject = {};
+    obstacle_: IBox =  {
+        visible: false,
+        left: 0
+    };
 
     startGame(){
-        this.bird_.bottom -= 2;
+        if(this.bird_.bottom > 0) this.bird_.bottom -= 2;
     }
 
     stopGame(timerId: number){
@@ -56,7 +61,7 @@ export default class FlappyBird extends Vue{
     }
 
     jump(){
-        this.bird_.bottom += 50;
+        if(this.bird_.bottom < 495) this.bird_.bottom += 50;
     }
 
     moveBird(){
@@ -64,15 +69,38 @@ export default class FlappyBird extends Vue{
         this.$refs.bird.style.left = this.bird_.left+'px';
     }
 
+    moveElement(prop: string){
+        this.$refs[prop].style.bottom = this.$data[`${prop}_`].bottom +'px';
+        this.$refs[prop].style.left = this.$data[`${prop}_`].left +'px';
+        this.$refs[prop].style.top = this.$data[`${prop}_`].top +'px';
+        this.$refs[prop].style.right = this.$data[`${prop}_`].right +'px';
+    }
+
+    generateObstacle(){
+        this.obstacle_.visible = true;
+        this.obstacle_.left = 500;
+    }
+
+    control(e: KeyboardEvent){
+        if(e.keyCode === 32){
+            this.jump()
+        }
+    }
 
     @Watch('bird_', {deep: true})
-    onBirdChanged(){
-        this.moveBird();
+    onBirdChange(){
+        this.moveElement("bird");
+    }
+
+    @Watch('obstacle_', {deep: true})
+    onObstacleChange(){
+        this.moveElement("obstacle");
     }
 
     mounted(){
         this.timerId = setInterval(this.startGame, 20);
-        document.addEventListener('keyup', this.jump);
+        document.addEventListener('keyup', this.control);
+        this.generateObstacle();
     }
 }
 </script>
@@ -100,6 +128,12 @@ export default class FlappyBird extends Vue{
             height: 150px;
             position: absolute;
             bottom: 0;
+        }
+        .obstacle{
+            background-color: darkslategrey;
+            width: 60px;
+            height: 300px;
+            position: absolute;
         }
     }
 </style>
