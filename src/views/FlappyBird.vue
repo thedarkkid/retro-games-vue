@@ -7,14 +7,18 @@
                 </v-col>
                 <v-col>
                     <div class="game-container" ref="gameContainer">
+
                         <div class="sky" ref="sky">
                             <div class="bird" ref="bird">
 
                             </div>
                         </div>
-                        <div ref="obstacle" v-if="obstacle_.visible" class="obstacle"></div>
+
                         <div class="ground" ref="ground">
                         </div>
+<!--                        <template v-for="(obstacle, index) in obstacles">-->
+<!--                            <component :is="obstacle" :key="index"></component>-->
+<!--                        </template>-->
                     </div>
                 </v-col>
                 <v-col>
@@ -27,30 +31,30 @@
 <script lang="ts">
 import {Component, Vue, Watch} from "vue-property-decorator";
 import ILooseObject from "@/interfaces/ILooseObject";
-import IBox from "@/interfaces/IBox";
-
-@Component
+import Obstacle from "@/pages/flappybird/Obstacle.vue";
+@Component({
+    components: {Obstacle}
+})
 export default class FlappyBird extends Vue{
-    timerId = 0;
+    obstacles: Obstacle[] = [];
+    gameTimerId = 0;
+    isGameOver = false;
 
     $refs!: {
         [key: string]: HTMLDivElement;
     };
 
-    gameDisplay_: ILooseObject = {};
+
+    gameContainer_: ILooseObject = {};
     ground_: ILooseObject = {};
 
     bird_: ILooseObject = {
-        visible: true,
+        visible: false,
         left: 220,
         bottom: 100,
         gravity: 2
     };
 
-    obstacle_: IBox =  {
-        visible: false,
-        left: 0
-    };
 
     startGame(){
         if(this.bird_.bottom > 0) this.bird_.bottom -= 2;
@@ -60,13 +64,19 @@ export default class FlappyBird extends Vue{
         clearInterval(timerId)
     }
 
-    jump(){
-        if(this.bird_.bottom < 495) this.bird_.bottom += 50;
+    generateObstacles(){
+        const ComponentClass = Vue.extend(Obstacle);
+        const instance = new ComponentClass();
+        instance.$mount();
+        this.$refs.gameContainer.appendChild(instance.$el);
+        if(this.bird_.bottom === 0){
+            this.stopGame(this.gameTimerId);
+        }
+        setTimeout(this.generateObstacles, 3000);
     }
 
-    moveBird(){
-        this.$refs.bird.style.bottom = this.bird_.bottom+'px';
-        this.$refs.bird.style.left = this.bird_.left+'px';
+    jump(){
+        if(this.bird_.bottom < 495) this.bird_.bottom += 50;
     }
 
     moveElement(prop: string){
@@ -74,11 +84,7 @@ export default class FlappyBird extends Vue{
         this.$refs[prop].style.left = this.$data[`${prop}_`].left +'px';
         this.$refs[prop].style.top = this.$data[`${prop}_`].top +'px';
         this.$refs[prop].style.right = this.$data[`${prop}_`].right +'px';
-    }
-
-    generateObstacle(){
-        this.obstacle_.visible = true;
-        this.obstacle_.left = 500;
+        this.$refs[prop].style.height = this.$data[`${prop}_`].height +'px';
     }
 
     control(e: KeyboardEvent){
@@ -90,22 +96,19 @@ export default class FlappyBird extends Vue{
     @Watch('bird_', {deep: true})
     onBirdChange(){
         this.moveElement("bird");
+        // if(this.obstacle_.left === 0)
     }
 
-    @Watch('obstacle_', {deep: true})
-    onObstacleChange(){
-        this.moveElement("obstacle");
-    }
 
     mounted(){
-        this.timerId = setInterval(this.startGame, 20);
+        this.gameTimerId = setInterval(this.startGame, 20);
         document.addEventListener('keyup', this.control);
-        this.generateObstacle();
+        this.generateObstacles();
     }
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
     .game-container{
         width: 500px;
         height: 730px;
@@ -130,10 +133,11 @@ export default class FlappyBird extends Vue{
             bottom: 0;
         }
         .obstacle{
+            position: absolute;
             background-color: darkslategrey;
             width: 60px;
             height: 300px;
-            position: absolute;
         }
+
     }
 </style>
