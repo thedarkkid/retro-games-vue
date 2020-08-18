@@ -5,9 +5,10 @@
                 <v-col cols="1">
 
                 </v-col>
-                <v-col>
+                <v-col class="bod">
+                    <div class="border-left"></div>
                     <div class="game-container" ref="gameContainer">
-
+                        <div class="border-top"></div>
                         <div class="sky" ref="sky">
                             <div class="bird" ref="bird">
 
@@ -16,10 +17,8 @@
 
                         <div class="ground" ref="ground">
                         </div>
-<!--                        <template v-for="(obstacle, index) in obstacles">-->
-<!--                            <component :is="obstacle" :key="index"></component>-->
-<!--                        </template>-->
                     </div>
+                    <div class="border-right"></div>
                 </v-col>
                 <v-col>
                 </v-col>
@@ -29,24 +28,23 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/ban-ts-ignore */
+
 import {Component, Vue, Watch} from "vue-property-decorator";
 import ILooseObject from "@/interfaces/ILooseObject";
 import Obstacle from "@/pages/flappybird/Obstacle.vue";
+
 @Component({
     components: {Obstacle}
 })
+
 export default class FlappyBird extends Vue{
-    obstacles: Obstacle[] = [];
     gameTimerId = 0;
     isGameOver = false;
 
     $refs!: {
         [key: string]: HTMLDivElement;
     };
-
-
-    gameContainer_: ILooseObject = {};
-    ground_: ILooseObject = {};
 
     bird_: ILooseObject = {
         visible: false,
@@ -55,28 +53,74 @@ export default class FlappyBird extends Vue{
         gravity: 2
     };
 
+    generateObstacles(){
+        const ComponentClass = Vue.extend(Obstacle);
+        const instance = new ComponentClass();
+        const topInstance = new ComponentClass();
+
+        if(!this.isGameOver){
+            instance.$mount();
+
+            topInstance.$data.top = true;
+            topInstance.$mount();
+
+            this.$refs.gameContainer.appendChild(instance.$el);
+            this.$refs.gameContainer.appendChild(topInstance.$el);
+
+            const moveObstacle = () =>{
+                if(instance.$data.obstacle_.left < -10 || topInstance.$data.obstacle_.left < 5){
+                    // @ts-ignore
+                    instance.destroyObstacle();
+                    // @ts-ignore
+                    topInstance.destroyObstacle();
+                }
+
+                instance.$data.obstacle_.left -= 2;
+                topInstance.$data.obstacle_.left -= 2;
+
+                const obsLeft = instance.$data.obstacle_.left;
+                const topObsLeft = topInstance.$data.obstacle_.left;
+
+                const noXCrossRule = () => { return !(obsLeft > 200 && obsLeft < 280 && this.bird_.left === 220) };
+                const noTopXCrossRule = () => { return !(topObsLeft > 200 && topObsLeft < 280 && this.bird_.left === 220) };
+                const noBirdBottomRule = () => { return !(this.bird_.bottom === 0) };
+                const noBirdObsX = () => {return !(this.bird_.bottom < instance.$data.obstacle_.bottom + 150)};
+                const noBirdTObsX = () => { return !(this.bird_.bottom > topInstance.$data.obstacle_.bottom - 200)};
+
+                if( !noXCrossRule() && !noTopXCrossRule()  && (!noBirdObsX() || !noBirdTObsX()) || !noBirdBottomRule() ){
+                    this.stopGame();
+                    clearInterval(instance.$data.obstacleTimerId);
+                    clearInterval(topInstance.$data.obstacleTimerId);
+                }
+            };
+
+            instance.$data.obstacleTimerId = setInterval(moveObstacle, 20);
+            topInstance.$data.obstacleTimerId = setInterval(moveObstacle, 20);
+            setTimeout(this.generateObstacles, 3000);
+        }
+
+    }
+
+
+    jump(){
+        // console.log("jump");
+        if(this.bird_.bottom < 495) this.bird_.bottom += 50;
+    }
+
+    control(e: KeyboardEvent){
+        if(e.keyCode === 32){
+            this.jump()
+        }
+    }
 
     startGame(){
         if(this.bird_.bottom > 0) this.bird_.bottom -= 2;
     }
 
-    stopGame(timerId: number){
-        clearInterval(timerId)
-    }
-
-    generateObstacles(){
-        const ComponentClass = Vue.extend(Obstacle);
-        const instance = new ComponentClass();
-        instance.$mount();
-        this.$refs.gameContainer.appendChild(instance.$el);
-        if(this.bird_.bottom === 0){
-            this.stopGame(this.gameTimerId);
-        }
-        setTimeout(this.generateObstacles, 3000);
-    }
-
-    jump(){
-        if(this.bird_.bottom < 495) this.bird_.bottom += 50;
+    stopGame(){
+        this.isGameOver = true;
+        clearInterval(this.gameTimerId);
+        document.removeEventListener('keyup', this.control);
     }
 
     moveElement(prop: string){
@@ -87,16 +131,12 @@ export default class FlappyBird extends Vue{
         this.$refs[prop].style.height = this.$data[`${prop}_`].height +'px';
     }
 
-    control(e: KeyboardEvent){
-        if(e.keyCode === 32){
-            this.jump()
-        }
-    }
+
 
     @Watch('bird_', {deep: true})
     onBirdChange(){
-        this.moveElement("bird");
-        // if(this.obstacle_.left === 0)
+        if(this.bird_.bottom === 0 && !this.isGameOver) this.stopGame();
+        if(!this.isGameOver) this.moveElement("bird");
     }
 
 
@@ -109,35 +149,71 @@ export default class FlappyBird extends Vue{
 </script>
 
 <style lang="scss">
-    .game-container{
-        width: 500px;
-        height: 730px;
-        position: absolute;
-        .sky{
-            background-color: lightblue;
-            width: 500px;
-            height: 580px;
+    .bod{
+        display: flex;
+        .border-left {
             position: absolute;
-            .bird{
-                background-color: yellow;
-                position: absolute;
-                height: 45px;
-                width: 60px;
-            }
+            width: 80px;
+            height: 1000px;
+            top: -200px;
+            background-color: white;
+            z-index: +2;
         }
-        .ground{
-            background-color: brown;
-            width: 500px;
-            height: 150px;
+        .border-right {
             position: absolute;
-            bottom: 0;
-        }
-        .obstacle{
-            position: absolute;
-            background-color: darkslategrey;
-            width: 60px;
-            height: 300px;
+            width: 80px;
+            height: 800px;
+            top: -50px;
+            left: 746px;
+            background-color: white;
+            z-index: +2;
         }
 
+        .game-container{
+            width: 500px;
+            height: 730px;
+            position: absolute;
+            .border-top{
+                position: absolute;
+                bottom: 730px;
+                left: 80px;
+                width: 420px;
+                height: 100px;
+                background-color: white;
+                z-index: 2;
+            }
+            .sky{
+                background-color: lightblue;
+                width: 500px;
+                height: 580px;
+                position: absolute;
+                .bird{
+                    background-color: yellow;
+                    position: absolute;
+                    height: 45px;
+                    width: 60px;
+                }
+            }
+            .ground{
+                background-color: brown;
+                width: 500px;
+                height: 150px;
+                position: absolute;
+                bottom: 0;
+                z-index: +1;
+            }
+            .obstacle{
+                position: absolute;
+                /*background-color: darkslategrey;*/
+                background-image: url("../assets/pipe.png") ;
+                background-size: 60px 300px;
+                width: 60px;
+                height: 300px;
+            }
+            .top-obstacle{
+                transform: rotate(180deg);
+            }
+
+        }
     }
 </style>

@@ -1,16 +1,18 @@
 <template>
-    <div v-if="obstacle_.visible" ref="obstacle" class="obstacle">
+    <div v-if="obstacle_.visible" ref="obstacle" class="obstacle" :class="{ 'top-obstacle': top}">
 
     </div>
 </template>
 
 <script lang="ts">
+/* eslint-disable @typescript-eslint/ban-ts-ignore */
+
     import {Component, Vue, Watch} from 'vue-property-decorator';
     import ILooseObject from "@/interfaces/ILooseObject";
 
     @Component
     export default class Obstacle extends Vue {
-
+        top = false;
         $refs!: {
             [key: string]: HTMLDivElement;
         };
@@ -19,6 +21,7 @@
 
         obstacle_: ILooseObject =  {
             visible: true,
+            gap: 430,
             left: 0
         };
 
@@ -38,6 +41,8 @@
         destroyObstacle (){
             this.obstacle_.visible = false;
             clearInterval(this.obstacleTimerId);
+
+            // @ts-ignore
             this.$el.parentNode.removeChild(this.$el);
             this.$destroy();
         }
@@ -45,15 +50,13 @@
         createObstacle(){
             this.obstacle_.visible = true;
             this.obstacle_.left = 500;
-            this.obstacle_.bottom = Math.random() * 60;
+            if(!this.top){
+                this.obstacle_.bottom = Math.random() * 60;
+            }else{
+                this.obstacle_.bottom = (Math.random() * 60) + this.obstacle_.gap;
+                this.obstacle_.left -= (Math.random() * 100);
 
-            const moveObstacle = () =>{
-                // if(this.obstacle_.left >0)
-                if(this.obstacle_.left === -50) this.destroyObstacle();
-                this.obstacle_.left -= 2;
-            };
-
-            this.obstacleTimerId = setInterval(moveObstacle, 20)
+            }
         }
 
         mounted(){
