@@ -2,13 +2,8 @@
     <v-app>
         <v-container class="mr-16">
             <v-row>
-                <v-col cols="1">
-
-                </v-col>
                 <v-col class="bod">
-                    <div class="border-left"></div>
                     <div class="game-container" ref="gameContainer">
-                        <div class="border-top"></div>
                         <div class="sky" ref="sky">
                             <div class="bird" ref="bird">
 
@@ -18,7 +13,12 @@
                         <div class="ground" ref="ground">
                         </div>
                     </div>
-                    <div class="border-right"></div>
+                    <div class="game-overlay" ref="gameOverlay">
+                        <div class="game-message">
+                            <h1 v-if="gameOverScreen" class="mb-5 game-over">GAME OVER</h1>
+                            <h1 v-if="startGameScreen" class="">PRESS ANY KEY TO START</h1>
+                        </div>
+                    </div>
                 </v-col>
                 <v-col>
                 </v-col>
@@ -41,6 +41,8 @@ import Obstacle from "@/pages/flappybird/Obstacle.vue";
 export default class FlappyBird extends Vue{
     gameTimerId = 0;
     isGameOver = false;
+    startGameScreen = true;
+    gameOverScreen = false;
 
     $refs!: {
         [key: string]: HTMLDivElement;
@@ -101,9 +103,11 @@ export default class FlappyBird extends Vue{
 
     }
 
+    drop(){
+        if(this.bird_.bottom > 0) this.bird_.bottom -= 2;
+    }
 
     jump(){
-        // console.log("jump");
         if(this.bird_.bottom < 495) this.bird_.bottom += 50;
     }
 
@@ -113,14 +117,25 @@ export default class FlappyBird extends Vue{
         }
     }
 
+    displayGameOverlay(state: boolean){
+        this.$refs.gameOverlay.style.display = (state)?"block":"none";
+    }
     startGame(){
-        if(this.bird_.bottom > 0) this.bird_.bottom -= 2;
+        this.displayGameOverlay(false);
+        this.gameTimerId = setInterval(this.drop, 20);
+        document.addEventListener('keyup', this.control);
+        this.generateObstacles();
+        document.removeEventListener('keyup', this.startGame);
     }
 
+
     stopGame(){
+        this.displayGameOverlay(true);
         this.isGameOver = true;
+        this.gameOverScreen = true;
         clearInterval(this.gameTimerId);
         document.removeEventListener('keyup', this.control);
+        document.addEventListener('keyup', this.startGame);
     }
 
     moveElement(prop: string){
@@ -131,89 +146,79 @@ export default class FlappyBird extends Vue{
         this.$refs[prop].style.height = this.$data[`${prop}_`].height +'px';
     }
 
-
-
     @Watch('bird_', {deep: true})
     onBirdChange(){
         if(this.bird_.bottom === 0 && !this.isGameOver) this.stopGame();
         if(!this.isGameOver) this.moveElement("bird");
     }
 
-
     mounted(){
-        this.gameTimerId = setInterval(this.startGame, 20);
-        document.addEventListener('keyup', this.control);
-        this.generateObstacles();
+        document.addEventListener('keyup', this.startGame);
     }
+
 }
 </script>
 
 <style lang="scss">
-    .bod{
-        display: flex;
-        .border-left {
+.game-message {
+    color: white;
+    position: absolute;
+    top: 250px;
+    left: 100px;
+    text-align: center;
+    max-width: 300px;
+    .game-over{
+        top: -50px;
+    }
+}
+.game-overlay{
+    font-family: 'BackTo1982',serif;
+    display: block;
+    width: 500px;
+    height: 730px;
+    overflow: hidden;
+    background-color: rgba(0,0,0,0.5);
+    z-index: +2 ;
+    position: absolute;
+}
+.game-container{
+    display: block;
+    width: 500px;
+    height: 730px;
+    position: absolute;
+    overflow: hidden;
+    z-index: 0;
+    .sky{
+        background-color: lightblue;
+        width: 500px;
+        height: 580px;
+        position: absolute;
+        .bird{
+            background-color: yellow;
             position: absolute;
-            width: 80px;
-            height: 1000px;
-            top: -200px;
-            background-color: white;
-            z-index: +2;
-        }
-        .border-right {
-            position: absolute;
-            width: 80px;
-            height: 800px;
-            top: -50px;
-            left: 746px;
-            background-color: white;
-            z-index: +2;
-        }
-
-        .game-container{
-            width: 500px;
-            height: 730px;
-            position: absolute;
-            .border-top{
-                position: absolute;
-                bottom: 730px;
-                left: 80px;
-                width: 420px;
-                height: 100px;
-                background-color: white;
-                z-index: 2;
-            }
-            .sky{
-                background-color: lightblue;
-                width: 500px;
-                height: 580px;
-                position: absolute;
-                .bird{
-                    background-color: yellow;
-                    position: absolute;
-                    height: 45px;
-                    width: 60px;
-                }
-            }
-            .ground{
-                background-color: brown;
-                width: 500px;
-                height: 150px;
-                position: absolute;
-                bottom: 0;
-                z-index: +1;
-            }
-            .obstacle{
-                position: absolute;
-                /*background-color: darkslategrey;*/
-                background-image: url("../assets/pipe.png") ;
-                background-size: 60px 300px;
-                width: 60px;
-                height: 300px;
-            }
-            .top-obstacle{
-                transform: rotate(180deg);
-            }
-
+            height: 45px;
+            width: 60px;
         }
     }
+    .ground{
+        background-color: brown;
+        width: 500px;
+        height: 150px;
+        position: absolute;
+        bottom: 0;
+        z-index: +1;
+    }
+    .obstacle{
+        position: absolute;
+        background-image: url("../assets/pipe.png") ;
+        background-size: 60px 300px;
+        width: 60px;
+        height: 300px;
+    }
+    .top-obstacle{
+        transform: rotate(180deg);
+    }
+
+}
+
 </style>

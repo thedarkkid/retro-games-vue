@@ -1,4 +1,4 @@
-interface ILooseObject {
+interface ILooseObject extends Object{
     [key: string]: any
 }
 

@@ -24,7 +24,7 @@ Vue.use(VueRouter);
     path: '/flappybird',
     name: 'FlappyBird',
     meta: { title: 'Flappy Bird' },
-    component: () => import(/* webpackChunkName: "about" */ '../views/FlappyBird.vue')
+    component: () => import(/* webpackChunkName: "about" */ '../views/FlappyBirdPro.vue')
   },
   {
     path: '/candycrush',

@@ -8,11 +8,11 @@
       </v-app-bar>
       <v-main id="main">
           <v-container fluid class="games">
-              <v-row no-gutters>
-                  <v-col cols="2">
+              <v-row>
+                  <v-col cols="2" col-xs="12">
                       <Sidebar />
                   </v-col>
-                  <v-col cols="9">
+                  <v-col cols="10">
                       <router-view></router-view>
                   </v-col>
               </v-row>
@@ -34,6 +34,11 @@ export default class App extends Vue{
 </script>
 
 <style lang="scss">
+@font-face {
+    font-family: "BackTo1982";
+    src: local("BackTo1982"),
+    url("./assets/fonts/BACKTO1982.TTF") format("truetype");
+}
 #home{
     margin: 0;
     padding: 0;
