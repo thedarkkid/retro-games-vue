@@ -22,7 +22,7 @@
         obstacle_: ILooseObject =  {
             visible: true,
             gap: 430,
-            left: 0
+            left: 1
         };
 
         moveElement(prop: string){

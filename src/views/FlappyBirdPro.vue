@@ -1,11 +1,12 @@
 <template>
     <v-app>
         <v-container class="mr-16">
-            <v-row>
-                <v-col class="bod">
+            <v-row class="bod">
+                <v-col class="">
                     <div class="game-container" ref="gameContainer">
                         <div class="sky" ref="sky">
                             <div class="bird" ref="bird"></div>
+
                         </div>
 
                         <div class="ground" ref="ground">
@@ -22,6 +23,24 @@
                     </div>
                 </v-col>
                 <v-col>
+                    <div class="console mb-5">
+                        <div class="console-col no-margin">
+                            <p class="h1 text-uppercase game-text blue--text text--darken-4">{{info}}</p>
+                        </div>
+                    </div>
+                    <div class="console">
+                        <div class="console-col">
+                            <p class="h1 text-uppercase game-text red--text text--darken-4">score : {{score}}</p>
+                        </div>
+                        <div class="console-col">
+                            <p class="h1 text-uppercase game-text green--text text--darken-4">jumps : {{jumps}}</p>
+                        </div>
+                    </div>
+                    <div class="console">
+                        <div class="console-col">
+                            <p class="h1 text-uppercase game-text deep-orange--text text--darken-4 underline">leaderboard</p>
+                        </div>
+                    </div>
                 </v-col>
             </v-row>
         </v-container>

@@ -3,18 +3,21 @@
 import {Component, Vue, Watch} from "vue-property-decorator";
 import ILooseObject from "@/interfaces/ILooseObject";
 import Obstacle from "@/pages/flappybird/Obstacle.vue";
+import XObstacle from "@/interfaces/XObstacle";
 
 @Component({
     components: {Obstacle}
 })
 
 export default class FlappyBird extends Vue{
+    info = "Press enter to pause";
     $refs!: {
         [key: string]: HTMLDivElement;
     };
 
     birdDropTimerID = 0;
-    obstacles: Map<number, Obstacle> = new Map<number, Obstacle>();
+    gameTimerId = 0;
+    obstacles: XObstacle[] = [];
 
     startGameScreen = false;
     gameOverScreen = false;
@@ -24,6 +27,7 @@ export default class FlappyBird extends Vue{
 
     difficulty = 1.5;
     score = 0;
+    jumps = 0;
 
     defaultBird: ILooseObject = {
         visible: false,
@@ -40,10 +44,70 @@ export default class FlappyBird extends Vue{
     }
 
     fly(){
-        if(this.bird_.bottom < 495) this.bird_.bottom += 50;
+        if(this.bird_.bottom < 495){
+            this.bird_.bottom += 50;
+            this.increaseScore();
+            this.increaseJumps();
+        }
+    }
+
+    /****** GAME POINTS METHODS *******/
+    increaseScore(){
+        const calcScore = this.difficulty+(+1*(Math.random()*2));
+        this.score += (calcScore >= 1) ? Math.floor(calcScore) : Math.ceil(calcScore);
+    }
+
+    increaseJumps(){
+        this.jumps++;
     }
 
     /****** OBSTACLE METHODS *******/
+    controlObstacles(){
+
+        const generateObstacle = (top?: boolean) => {
+            top = (top)? top : false;
+            const obs = this.createObstacle(top);
+            obs.$mount();
+            const obsTimerID = setInterval( ()=>{this.moveObstacle(obs)}, 20);
+            this.addObstacle({timerId:obsTimerID, obstacle:obs});
+        }
+
+    }
+
+    manageObstacles(){
+        // check obstacle array and delete useless ones
+    }
+
+    createObstacle(top?: boolean): Obstacle{
+        top = (top)? top : false;
+
+        // create Obstacle component
+        const ComponentClass = Vue.extend(Obstacle);
+        const instance = new ComponentClass();
+
+        // modify properties
+        instance.$data.top = top;
+
+        // return obstacle
+        return instance;
+    }
+
+    addObstacle(xObs: XObstacle){
+        this.obstacles.push(xObs);
+        this.$refs.gameContainer.appendChild(xObs.obstacle.$el);
+    }
+
+    stopObstacle(xObs: XObstacle){
+
+    }
+
+    moveObstacle(obstacle: Obstacle){
+        obstacle.$data.obstacle_.left -= this.speed;
+    }
+
+    deleteObstacle(obstacle: Vue){
+
+    }
 
     /****** GAME STATE METHODS *******/
     waiting(){
@@ -52,24 +116,50 @@ export default class FlappyBird extends Vue{
     }
 
     startGame(){
+        // remove overlay screen
+        if(this.startGameScreen)this.startGameXCR(false);
+        if(this.gameOverScreen)this.gameOverXCR(false);
+
+        this.resetParameters();
         this.enableGravity();
-        this.addFlightEL();
+        this.manageObstacles();
+
+        // modify EL
         this.removeStartGameEL();
-        this.startGameXCR(false);
+        this.addFlightEL();
+        this.addPauseGameEL();
     }
 
     pauseGame(){
+        // disable "gravity" and show game screen
+        this.disableGravity();
+        this.pauseGameXCR(true);
 
+        // Modify EL
+        this.removePauseGameEL();
+        this.addResumeGameEL();
+        this.removeFlightEL();
     }
 
     stopGame(){
+        // Stops Game
         this.disableGravity();
-        this.removeFlightEL();
+        this.gameOverXCR(true);
 
+        // Modify EL
+        this.removeFlightEL();
+        this.addStartGameEL();
     }
 
-    restartGame(){
-        this.resetParameters();
+    resumeGame(){
+        // enable game resumption
+        this.pauseGameXCR(false);
+        this.enableGravity();
+
+        // Modify EL
+        this.removeResumeGameEL();
+        this.addPauseGameEL();
+        this.addFlightEL();
     }
 
     /****** WATCHERS *******/
@@ -85,6 +175,10 @@ export default class FlappyBird extends Vue{
         return this.bird_.weight*this.difficulty;
     }
 
+    get speed(){
+        return 2;
+    }
+
     /****** HELPERS *******/
     moveElement(prop: string){
         this.$refs[prop].style.bottom = this.$data[`${prop}_`].bottom +'px';
@@ -95,11 +189,20 @@ export default class FlappyBird extends Vue{
     }
 
     resetParameters(){
+        this.obstacles = [];
+
         this.bird_ = Object.assign({}, this.defaultBird);
         this.birdDropTimerID = 0;
+        this.gameTimerId = 0;
+
         this.startGameScreen = false;
         this.gameOverScreen = false;
+        this.gamePausedScreen = false;
+        this.resumeGameScreen = false;
+
+        this.difficulty = 1.5;
         this.score = 0;
+        this.jumps = 0;
     }
 
     gameOverlay(show: boolean){
@@ -109,10 +212,19 @@ export default class FlappyBird extends Vue{
     /****** TRIGGER METHODS *******/
 
     triggerFlight(e: KeyboardEvent){
-        if(e.keyCode === 32){
+        if(e.key === " "){
             this.fly()
         }
     }
+
+    triggerGamePause(e: KeyboardEvent){
+        if(e.key === "Enter"){
+            this.pauseGame();
+        }
+    }
+
+    /****** GAME RULES METHODS *******/
+
 
 
     /****** GAME SCREEN METHODS *******/
@@ -146,6 +258,20 @@ export default class FlappyBird extends Vue{
     }
     removeStartGameEL(){
         document.removeEventListener('keyup', this.startGame);
+    }
+
+    addPauseGameEL(){
+        document.addEventListener('keyup', this.triggerGamePause);
+    }
+    removePauseGameEL(){
+        document.removeEventListener('keyup', this.triggerGamePause);
+    }
+
+    addResumeGameEL(){
+        document.addEventListener('keyup', this.resumeGame);
+    }
+    removeResumeGameEL(){
+        document.removeEventListener('keyup', this.resumeGame);
     }
 
     /****** INTERVAL METHODS *******/

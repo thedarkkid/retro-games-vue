@@ -2,7 +2,7 @@
   <v-app id="home">
       <v-app-bar app class="d-block" color="primary" dark>
           <div class="d-flex align-center">
-              <h1>Retro Games</h1>
+              <h1 class="text-uppercase">Retro Games</h1>
           </div>
           <v-spacer></v-spacer>
       </v-app-bar>

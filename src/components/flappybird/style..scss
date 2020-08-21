@@ -1,60 +1,88 @@
-.game-message {
-  color: white;
-  position: absolute;
-  top: 250px;
-  left: 100px;
-  text-align: center;
-  max-width: 300px;
-  .game-over{
-    top: -50px;
-  }
-}
-.game-overlay{
+.bod{
   font-family: 'BackTo1982',serif;
-  display: none;
-  width: 500px;
-  height: 730px;
-  overflow: hidden;
-  background-color: rgba(0,0,0,0.5);
-  z-index: +2 ;
-  position: absolute;
-}
-.game-container{
-  display: block;
-  width: 500px;
-  height: 730px;
-  position: absolute;
-  overflow: hidden;
-  z-index: 0;
-  .sky{
-    background-color: lightblue;
-    width: 500px;
-    height: 580px;
+
+  .game-message {
+    color: white;
     position: absolute;
-    .bird{
-      background-color: yellow;
-      position: absolute;
-      height: 45px;
-      width: 60px;
+    top: 250px;
+    left: 100px;
+    text-align: center;
+    max-width: 300px;
+    .game-over{
+      top: -50px;
     }
   }
-  .ground{
-    background-color: brown;
+  .game-text {
+    font-family: 'BackTo1982',serif;
+    font-size: xx-large;
+    font-weight: bold;
+  }
+  .console{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 100px;
+    .console-col{
+      margin: 10px 10px;
+    }
+    .small-margin{
+      margin: 5px 10px;
+    }
+    .no-margin{
+      margin: 0;
+    }
+    .underline{
+      border-bottom: solid 1px black;
+      padding-bottom: 5px;
+    }
+  }
+  .game-overlay{
+    font-family: 'BackTo1982',serif;
+    display: none;
     width: 500px;
-    height: 150px;
+    height: 730px;
+    overflow: hidden;
+    background-color: rgba(0,0,0,0.5);
+    z-index: +2 ;
     position: absolute;
-    bottom: 0;
-    z-index: +1;
   }
-  .obstacle{
+  .game-container{
+    display: block;
+    width: 500px;
+    height: 730px;
     position: absolute;
-    background-image: url("../../assets/pipe.png") ;
-    background-size: 60px 300px;
-    width: 60px;
-    height: 300px;
-  }
-  .top-obstacle{
-    transform: rotate(180deg);
+    overflow: hidden;
+    z-index: 0;
+    .sky{
+      background-color: lightblue;
+      width: 500px;
+      height: 580px;
+      position: absolute;
+      .bird{
+        background-color: yellow;
+        position: absolute;
+        height: 45px;
+        width: 60px;
+      }
+    }
+    .ground{
+      background-color: brown;
+      width: 500px;
+      height: 150px;
+      position: absolute;
+      bottom: 0;
+      z-index: +1;
+    }
+    .obstacle{
+      position: absolute;
+      background-image: url("../../assets/pipe.png") ;
+      background-size: 60px 300px;
+      width: 60px;
+      height: 300px;
+    }
+    .top-obstacle{
+      transform: rotate(180deg);
+    }
+
   }
 
 }
