@@ -347,7 +347,7 @@ export default class FlappyBird extends Vue{
     }
 
     enableObsCTRL(){
-       this.gameTimerId = setTimeout(this.controlObstacles, 2500);
+       this.gameTimerId = setTimeout(this.controlObstacles, 3200);
     }
     disableObsCTRL(){
         this.gameTimerId = 0;
