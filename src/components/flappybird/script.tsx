@@ -63,25 +63,38 @@ export default class FlappyBird extends Vue{
 
     /****** OBSTACLE METHODS *******/
     controlObstacles(){
-
+        this.manageObstacles();
         const generateObstacle = (top?: boolean) => {
             top = (top)? top : false;
             const obs = this.createObstacle(top);
             obs.$mount();
-            const obsTimerID = setInterval( ()=>{this.moveObstacle(obs)}, 20);
-            this.addObstacle({timerId:obsTimerID, obstacle:obs});
+
+            const xObs = {timerId:0, obstacle:obs};
+
+            this.enableObstacle(xObs);
+            this.addObstacle(xObs);
         }
 
     }
 
     manageObstacles(){
         // check obstacle array and delete useless ones
+        const obstacles: XObstacle[] = this.obstacles;
+        if(obstacles.length > 3) {
+            const currXObs: XObstacle = obstacles[1];
+            const currObs: Vue = currXObs.obstacle;
+            if (currObs.$data.obstacle_.left <= 0){
+                clearInterval(currXObs.timerId);
+                obstacles.shift();
+            }
+            this.manageObstacles();
+        }
     }
 
-    createObstacle(top?: boolean): Obstacle{
+    createObstacle(top?: boolean): Vue{
         top = (top)? top : false;
 
-        // create Obstacle component
+        // create NObstacle component
         const ComponentClass = Vue.extend(Obstacle);
         const instance = new ComponentClass();
 
@@ -97,17 +110,15 @@ export default class FlappyBird extends Vue{
         this.$refs.gameContainer.appendChild(xObs.obstacle.$el);
     }
 
-    stopObstacle(xObs: XObstacle){
-
-    }
-
-    moveObstacle(obstacle: Obstacle){
+    moveObstacle(obstacle: Vue){
         obstacle.$data.obstacle_.left -= this.speed;
     }
 
-    deleteObstacle(obstacle: Vue){
+    pauseObstacles(xObstacles: XObstacle){
 
     }
+
+
 
     /****** GAME STATE METHODS *******/
     waiting(){
@@ -282,6 +293,13 @@ export default class FlappyBird extends Vue{
         clearInterval(this.birdDropTimerID)
     }
 
+    enableObstacle(xObs: XObstacle){
+         xObs.timerId = setInterval( ()=>{this.moveObstacle(xObs.obstacle)}, 20);
+    }
+    disableObstacle(xObs: XObstacle){
+        clearInterval(xObs.timerId);
+        xObs.timerId = 0;
+    }
     /****** DEFAULT METHODS *******/
     mounted(){
         this.waiting();

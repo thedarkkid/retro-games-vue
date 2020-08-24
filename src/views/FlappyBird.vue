@@ -32,10 +32,10 @@
 
 import {Component, Vue, Watch} from "vue-property-decorator";
 import ILooseObject from "@/interfaces/ILooseObject";
-import Obstacle from "@/pages/flappybird/Obstacle.vue";
+import NObstacle from "@/pages/flappybird/NObstacle.vue";
 
 @Component({
-    components: {Obstacle}
+    components: {Obstacle: NObstacle}
 })
 
 export default class FlappyBird extends Vue{
@@ -56,7 +56,7 @@ export default class FlappyBird extends Vue{
     };
 
     generateObstacles(){
-        const ComponentClass = Vue.extend(Obstacle);
+        const ComponentClass = Vue.extend(NObstacle);
         const instance = new ComponentClass();
         const topInstance = new ComponentClass();
 

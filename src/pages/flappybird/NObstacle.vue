@@ -11,13 +11,13 @@
     import ILooseObject from "@/interfaces/ILooseObject";
 
     @Component
-    export default class Obstacle extends Vue {
+    export default class NObstacle extends Vue {
         top = false;
         $refs!: {
             [key: string]: HTMLDivElement;
         };
 
-        // obstacleTimerId = 0;
+        obstacleTimerId = 0;
 
         obstacle_: ILooseObject =  {
             visible: true,
@@ -40,7 +40,7 @@
 
         destroyObstacle (){
             this.obstacle_.visible = false;
-            // clearInterval(this.obstacleTimerId);
+            clearInterval(this.obstacleTimerId);
 
             // @ts-ignore
             this.$el.parentNode.removeChild(this.$el);
