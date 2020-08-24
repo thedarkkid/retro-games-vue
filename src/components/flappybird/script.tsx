@@ -89,16 +89,12 @@ export default class FlappyBird extends Vue{
 
     manageObstacles(){
         // check obstacle array and delete useless ones
-        // make deleteObstacles a method.
         const popObs = () => {
             if(this.obstacles.length <= 3) return;
             const currXObs: XObstacle = this.obstacles[0];
             const currObs: Vue = currXObs.obstacle;
             if (currObs.$data.obstacle_.left <= -50){
-                clearInterval(currXObs.timerId);
-                currObs.$destroy();
-                // @ts-ignore
-                currObs.destroyObstacle();
+                this.deleteObstacle(currXObs);
                 this.obstacles.shift();
             }
         };
@@ -119,6 +115,12 @@ export default class FlappyBird extends Vue{
         const xObstacles: XObstacle[] = this.obstacles;
         for(let i =0; i<xObstacles.length; i++){
             this.enableObstacle(xObstacles[i]);
+        }
+    }
+
+    deleteObstacles(){
+        for(let i = 0; i<this.obstacles.length; i++){
+            this.deleteObstacle(this.obstacles[i]);
         }
     }
 
@@ -143,6 +145,13 @@ export default class FlappyBird extends Vue{
 
     moveObstacle(obstacle: Vue){
         obstacle.$data.obstacle_.left -= this.speed;
+    }
+
+    deleteObstacle(xObs: XObstacle){
+        clearInterval(xObs.timerId);
+        xObs.obstacle.$destroy();
+        // @ts-ignore
+        xObs.obstacle.destroyObstacle();
     }
 
     /****** GAME STATE METHODS *******/
@@ -234,6 +243,7 @@ export default class FlappyBird extends Vue{
     }
 
     resetParameters(){
+        this.deleteObstacles();
         this.obstacles = [];
 
         this.bird_ = Object.assign({}, this.defaultBird);
