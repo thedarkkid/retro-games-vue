@@ -17,7 +17,9 @@ export default class FlappyBird extends Vue{
 
     birdDropTimerID = 0;
     gameTimerId = 0;
+
     obstacles: XObstacle[] = [];
+    ctrlObs = false;
 
     startGameScreen = false;
     gameOverScreen = false;
@@ -63,7 +65,11 @@ export default class FlappyBird extends Vue{
 
     /****** OBSTACLE METHODS *******/
     controlObstacles(){
+        if(!this.game || this.ctrlObs) return;
+        this.ctrlObs = true;
+
         this.manageObstacles();
+
         const generateObstacle = (top?: boolean) => {
             top = (top)? top : false;
             const obs = this.createObstacle(top);
@@ -71,23 +77,48 @@ export default class FlappyBird extends Vue{
 
             const xObs = {timerId:0, obstacle:obs};
 
-            this.enableObstacle(xObs);
             this.addObstacle(xObs);
-        }
+            this.enableObstacle(xObs);
+        };
+        generateObstacle(true);
+        generateObstacle();
 
+        this.enableObsCTRL();
+        this.ctrlObs = false;
     }
 
     manageObstacles(){
         // check obstacle array and delete useless ones
-        const obstacles: XObstacle[] = this.obstacles;
-        if(obstacles.length > 3) {
-            const currXObs: XObstacle = obstacles[1];
+        // make deleteObstacles a method.
+        const popObs = () => {
+            if(this.obstacles.length <= 3) return;
+            const currXObs: XObstacle = this.obstacles[0];
             const currObs: Vue = currXObs.obstacle;
-            if (currObs.$data.obstacle_.left <= 0){
+            if (currObs.$data.obstacle_.left <= -50){
                 clearInterval(currXObs.timerId);
-                obstacles.shift();
+                currObs.$destroy();
+                // @ts-ignore
+                currObs.destroyObstacle();
+                this.obstacles.shift();
             }
-            this.manageObstacles();
+        };
+
+        if(this.obstacles.length > 3) {
+            for(let i=0; i<this.obstacles.length; i++) popObs();
+        }
+    }
+
+    freezeObstacles(){
+        const xObstacles: XObstacle[] = this.obstacles;
+        for(let i =0; i<xObstacles.length; i++){
+            this.disableObstacle(xObstacles[i]);
+        }
+    }
+
+    unfreezeObstacles(){
+        const xObstacles: XObstacle[] = this.obstacles;
+        for(let i =0; i<xObstacles.length; i++){
+            this.enableObstacle(xObstacles[i]);
         }
     }
 
@@ -114,12 +145,6 @@ export default class FlappyBird extends Vue{
         obstacle.$data.obstacle_.left -= this.speed;
     }
 
-    pauseObstacles(xObstacles: XObstacle){
-
-    }
-
-
-
     /****** GAME STATE METHODS *******/
     waiting(){
         this.startGameXCR(true);
@@ -133,7 +158,7 @@ export default class FlappyBird extends Vue{
 
         this.resetParameters();
         this.enableGravity();
-        this.manageObstacles();
+        this.controlObstacles();
 
         // modify EL
         this.removeStartGameEL();
@@ -145,6 +170,8 @@ export default class FlappyBird extends Vue{
         // disable "gravity" and show game screen
         this.disableGravity();
         this.pauseGameXCR(true);
+        this.freezeObstacles();
+        this.disableObsCTRL();
 
         // Modify EL
         this.removePauseGameEL();
@@ -156,6 +183,7 @@ export default class FlappyBird extends Vue{
         // Stops Game
         this.disableGravity();
         this.gameOverXCR(true);
+        setTimeout(this.freezeObstacles, 800);
 
         // Modify EL
         this.removeFlightEL();
@@ -166,12 +194,14 @@ export default class FlappyBird extends Vue{
         // enable game resumption
         this.pauseGameXCR(false);
         this.enableGravity();
+        this.unfreezeObstacles();
 
         // Modify EL
         this.removeResumeGameEL();
         this.addPauseGameEL();
         this.addFlightEL();
     }
+
 
     /****** WATCHERS *******/
     @Watch('bird_', {deep: true})
@@ -190,6 +220,10 @@ export default class FlappyBird extends Vue{
         return 2;
     }
 
+    get game(){
+        return !(this.gameOverScreen || this.gamePausedScreen);
+    }
+
     /****** HELPERS *******/
     moveElement(prop: string){
         this.$refs[prop].style.bottom = this.$data[`${prop}_`].bottom +'px';
@@ -206,6 +240,7 @@ export default class FlappyBird extends Vue{
         this.birdDropTimerID = 0;
         this.gameTimerId = 0;
 
+        this.ctrlObs = false;
         this.startGameScreen = false;
         this.gameOverScreen = false;
         this.gamePausedScreen = false;
@@ -300,6 +335,15 @@ export default class FlappyBird extends Vue{
         clearInterval(xObs.timerId);
         xObs.timerId = 0;
     }
+
+    enableObsCTRL(){
+       this.gameTimerId = setTimeout(this.controlObstacles, 2500);
+    }
+    disableObsCTRL(){
+        this.gameTimerId = 0;
+    }
+
+
     /****** DEFAULT METHODS *******/
     mounted(){
         this.waiting();
