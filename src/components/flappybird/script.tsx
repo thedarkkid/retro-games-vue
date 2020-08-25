@@ -14,6 +14,7 @@ export default class FlappyBird extends Vue{
     $refs!: {
         [key: string]: HTMLDivElement;
     };
+    _appKey = 1;
 
     birdDropTimerID = 0;
     gameTimerId = 0;
@@ -215,8 +216,8 @@ export default class FlappyBird extends Vue{
     /****** WATCHERS *******/
     @Watch('bird_', {deep: true})
     onBirdChange(){
-        // check if the
-        if(this.bird_.bottom <= 0) this.stopGame();
+        // check if the game is over.
+        if(this.collision(this.bird_, this.obstacles)) this.stopGame();
         this.moveElement("bird");
     }
 
@@ -245,7 +246,6 @@ export default class FlappyBird extends Vue{
     resetParameters(){
         this.deleteObstacles();
         this.obstacles = [];
-
         this.bird_ = Object.assign({}, this.defaultBird);
         this.birdDropTimerID = 0;
         this.gameTimerId = 0;
@@ -259,6 +259,9 @@ export default class FlappyBird extends Vue{
         this.difficulty = 1.5;
         this.score = 0;
         this.jumps = 0;
+
+        this._appKey = 2;
+
     }
 
     gameOverlay(show: boolean){
@@ -280,6 +283,22 @@ export default class FlappyBird extends Vue{
     }
 
     /****** GAME RULES METHODS *******/
+    noXCrossRule = (obs: Vue) => { return !(obs.$data.obstacle_.left > 200 && obs.$data.obstacle_.left < 280 && this.bird_.left === 220)};
+    noBirdBottomRule = (bird: ILooseObject) => { return !(bird.bottom < 0) };
+    noBirdObsX = (obs: Vue) => {return !(this.bird_.bottom < obs.$data.obstacle_.bottom + 150)};
+    noBirdTObsX = (obs: Vue) => { return !(this.bird_.bottom > obs.$data.obstacle_.bottom - 200)};
+
+    collision = (bird: ILooseObject, obstacles: XObstacle[]): boolean => {
+        if(obstacles.length < 2) return !this.noBirdBottomRule(bird);
+
+        const bottomIdx =  obstacles.length-1;
+        const topIdx = bottomIdx-1;
+
+        const top: Vue = obstacles[topIdx].obstacle;
+        const bottom: Vue = obstacles[bottomIdx].obstacle;
+
+        return ( !this.noXCrossRule(bottom) && !this.noXCrossRule(top)  && (!this.noBirdObsX(bottom) || !this.noBirdTObsX(top)) || !this.noBirdBottomRule(bird) )
+    };
 
 
 
